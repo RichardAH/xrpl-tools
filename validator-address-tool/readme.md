@@ -1,8 +1,11 @@
 # Validator Address Tool
 ## What is this?
 Validators use a keypair to publish validations to the XRPL mesh network, like this:
+
 > nHBtDzdRDykxiuv7uSMPTcGexNm879RUUz5GW4h1qgjbtyvWZ1LE
+
 These same keys can be used in an account context on the XRPL. 
+
 >$ node vatool.js address nHBtDzdRDykxiuv7uSMPTcGexNm879RUUz5GW4h1qgjbtyvWZ1LE
 >[Output:] rHiJahydBswnAUMZk5yhTjTvcjBE1fXAGh
 

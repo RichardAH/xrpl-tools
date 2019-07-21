@@ -109,7 +109,7 @@ function print_help() {
     console.log("Usage: option [key] [-t] [-f file] [-s server]")
     console.log("Option:")
     console.log("   address   Show the XRPL address corresponding to your validator's key. If a validator pubkey is specified the address for this is shown instead.")
-    console.log("   regular   Set a regular key for the XRPL address corresponding to your validator's key as loaded from the validator-keys.json file")
+    console.log("   rekey     Set a regular key for the XRPL address corresponding to your validator's key as loaded from the validator-keys.json file")
     console.log("Flags:")
     console.log("   -t        Use Testnet")
     console.log("   -f        Set the location of the validator-keys.json file")

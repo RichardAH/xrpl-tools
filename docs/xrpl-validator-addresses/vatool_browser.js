@@ -55488,6 +55488,8 @@ function xrpl_address_from_validator_pk(pk, skipdecode) {
     return address
 }
 
+window.xrpl_address_from_validator_pk = xrpl_address_from_validator_pk;
+
 function ed25519_keypair_from_validator_sk(sk) {
     return ec.keyFromSecret(address_codec.decode(sk).slice(1,33))
 }

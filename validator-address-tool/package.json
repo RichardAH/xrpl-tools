@@ -1,0 +1,25 @@
+{
+  "name": "validator-address-tool",
+  "version": "1.0.0",
+  "description": "A tool to allow XRPL Validators to see and claim their corresponding XRPL address",
+  "main": "vatool.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codetsunami/xrpl-tools/tree/master/validator-address-tool"
+  },
+  "keywords": [
+    "xrp-ledger"
+  ],
+  "author": "codetsunami",
+  "dependencies": {
+    "assert": "^2.0.0",
+    "base-x": "^3.0.6",
+    "crypto": "^1.0.1",
+    "elliptic": "^6.5.0",
+    "ripple-address-codec": "^2.0.1",
+    "ripple-lib": "^1.2.4"
+  }
+}

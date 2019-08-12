@@ -1,0 +1,4 @@
+ecdsa==0.13.2
+pkg-resources==0.0.0
+protobuf==3.9.1
+six==1.12.0

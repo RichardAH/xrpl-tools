@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "ripple-address-codec": "https://github.com/ripple/ripple-address-codec/archive/0d87da978a5c46024eaa361bc8add300df87ec52.tar.gz"
+  }
+}

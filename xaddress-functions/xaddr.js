@@ -28,8 +28,13 @@ function addr_test() {
         ['rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf', 65591,   'XVLhHMPHU98es4dbozjVtdWzVrDjtVozpjdhPQVdt3ghaWw'],
         ['rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf', 16781933,    'XVLhHMPHU98es4dbozjVtdWzVrDjtVqrDUk2vDpkTjPsY73'],
         ['rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf', 4294967294,  'XVLhHMPHU98es4dbozjVtdWzVrDjtV1kAsixQTdMjbWi39u'],
-        ['rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf', 4294967295,  'XVLhHMPHU98es4dbozjVtdWzVrDjtV18pX8yuPT7y4xaEHi']
+        ['rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf', 4294967295,  'XVLhHMPHU98es4dbozjVtdWzVrDjtV18pX8yuPT7y4xaEHi'],
+        ['rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY', false,  'XV5sbjUmgPpvXv4ixFWZ5ptAYZ6PD2gYsjNFQLKYW33DzBm'],
+        ['rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY', 0,  'XV5sbjUmgPpvXv4ixFWZ5ptAYZ6PD2m4Er6SnvjVLpMWPjR'],
+        ['rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY', 13371337,  'XV5sbjUmgPpvXv4ixFWZ5ptAYZ6PD2qwGkhgc48zzcx6Gkr']
+
     ]
+    var allpassed = true
 	for (var test_no in tests) {
 		var test = tests[test_no]
 		console.log('runing test' + JSON.stringify(test))
@@ -44,11 +49,14 @@ function addr_test() {
 		    xx != x || 
 	 	    rr.raddr != r.raddr || 
 		    rr.tag != r.tag
-	              )
-			console.log("!!!!!!!!!!FAILED")
+	              ) {
+			    console.log("!!!!!!!!!!FAILED")
+                allpassed = false
+            }
 	       else console.log('passed')
 	}
 
+    console.log(allpassed ? 'ALL PASSED' : 'NOT ALL TESTS PASSED' )
 }
 
 addr_test()

@@ -1,3 +1,5 @@
+
+/* these are the two functions ************/
 const rippleAddressCodec = require('ripple-address-codec')
 
 function xaddr(raddr, tag) {
@@ -16,6 +18,12 @@ function raddr(xaddr) {
 	var tag = decoded[22] == 0 ? false : decoded[23] + decoded[24] * 0x100 + decoded[25] * 0x10000 + decoded[26] * 0x1000000
 	return decoded[22] > 1 ? false : {raddr: raddr, tag: tag}
 }
+
+/*****************************************/
+
+// everything below is testing
+
+
 
 function addr_test() {
 	var tests = [
@@ -37,7 +45,7 @@ function addr_test() {
     var allpassed = true
 	for (var test_no in tests) {
 		var test = tests[test_no]
-		console.log('runing test' + JSON.stringify(test))
+		console.log('running test' + JSON.stringify(test))
 		var x = xaddr(test[0], test[1])
 		var r = raddr(test[2])
 		var xx = xaddr(r.raddr, r.tag)
@@ -56,7 +64,34 @@ function addr_test() {
 	       else console.log('passed')
 	}
 
-    console.log(allpassed ? 'ALL PASSED' : 'NOT ALL TESTS PASSED' )
+    console.log(allpassed ? 'ALL PRESET TESTS PASSED' : 'NOT ALL PRESET TESTS PASSED' )
 }
 
 addr_test()
+
+
+// test against existing library
+
+const existing = require('xrpl-tagged-address-codec')
+const crypto = require('crypto')
+const rnd_tests = 1000000
+var allpassed = true
+console.log("running " + rnd_tests + " against existing library")
+for (var i = 0; i < rnd_tests; ++i) {
+    var desttag = (crypto.randomBytes(1)[0] > 128) ? false : parseInt('0x' + crypto.randomBytes(4).toString('hex'))
+    var raddr = rippleAddressCodec.encodeAccountID(crypto.randomBytes(20))
+
+    var a = existing.Encode({account: raddr, tag: desttag === false ? null : desttag, testnet: false}) 
+    var b = xaddr(raddr, desttag)
+    
+    if (a != b) allpassed = false
+    
+    if (a != b || i % (rnd_tests / 100) == 0 ) {
+        console.log(raddr + ' dt = ' + desttag)
+        console.log(a + ' == ' + b + ' (' + (a == b) + ')')
+        console.log("up to random test " + i + " " + (allpassed ? ' all have passed so far': (a != b ? ' FAILED' : ' previous test failed')))
+    }
+}
+
+console.log(allpassed ? 'ALL RANDOM TESTS PASSED': 'NOT ALL RANDOM TESTS PASSED')
+

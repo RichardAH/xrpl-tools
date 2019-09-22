@@ -24,7 +24,7 @@ assert(crypto.getHashes().includes('sha256'));
 assert(crypto.getHashes().includes('ripemd160'));
 
 function xaddr(raddr, tag) {
-	flag = tag === false ? 0 : tag < 4294967296  ? 1 : 2
+	var flag = tag === false ? 0 : tag < 4294967296  ? 1 : 2
 	if (flag == 2) return false
 	var decoded = rippleAddressCodec.decodeAccountID(raddr)
 	if (!decoded) return false
@@ -201,7 +201,7 @@ function cmdline(argv) {
 
     if (argv[0] == 'address') { 
         console.log("Your validator's XRPL r-address is: " + xrpl_addr_from_sk) 
-        console.log("Your validator's XRPL X-address is: " + xaddr(xrpl_addr_from_sk))
+        console.log("Your validator's XRPL X-address is: " + xaddr(xrpl_addr_from_sk, false))
         return
     }
 

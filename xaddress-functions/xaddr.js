@@ -3,7 +3,7 @@
 const rippleAddressCodec = require('ripple-address-codec')
 
 function xaddr(raddr, tag) {
-	flag = tag === false ? 0 : tag < 4294967296  ? 1 : 2
+	var flag = typeof(tag) === 'undefined' || tag === false ? 0 : tag < 4294967296  ? 1 : 2
 	if (flag == 2) return false
 	var decoded = rippleAddressCodec.decodeAccountID(raddr)
 	if (!decoded) return false
@@ -22,7 +22,6 @@ function raddr(xaddr) {
 /*****************************************/
 
 // everything below is testing
-
 
 
 function addr_test() {

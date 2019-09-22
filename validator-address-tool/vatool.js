@@ -172,9 +172,12 @@ function cmdline(argv) {
     for (var i in argv2)
         if (argv2[i] !== undefined) argv.push(argv2[i])
 
-    if (argv[0] == 'address' && argv.length > 2) {
+    if (argv[0] == 'address' && argv.length >= 2) {
         // in this mode we won't look for a file because the user is specifying an XRPL validator public key
-        return console.log(xrpl_address_from_validator_pk(argv[1]))
+        var r = xrpl_address_from_validator_pk(argv[1])
+        console.log('r-Address: ' + r)
+        console.log('X-Address: ' + xaddr(r, false))
+        return
     }
 
     // open the file

@@ -26,16 +26,16 @@ assert(crypto.getHashes().includes('ripemd160'));
 function xaddr(raddr, tag) {
 	var flag = tag === false ? 0 : tag < 4294967296  ? 1 : 2
 	if (flag == 2) return false
-	var decoded = rippleAddressCodec.decodeAccountID(raddr)
+	var decoded = address_codec.decodeAccountID(raddr)
 	if (!decoded) return false
-	return rippleAddressCodec.codecs.ripple.encodeChecked([0x05, 0x44].concat(decoded.concat(
+	return address_codec.codecs.ripple.encodeChecked([0x05, 0x44].concat(decoded.concat(
 		[flag, tag & 0xff, (tag  >> 8) & 0xff, (tag >> 16) & 0xff, (tag >> 24) & 0xff, 0,0,0,0])))
 }
 
 function raddr(xaddr) {
-	var decoded = rippleAddressCodec.codecs.ripple.decodeChecked(xaddr)
+	var decoded = address_codec.codecs.ripple.decodeChecked(xaddr)
 	if (!decoded) return false
-	var raddr = rippleAddressCodec.encodeAccountID(decoded.slice(2,22))
+	var raddr = address_codec.encodeAccountID(decoded.slice(2,22))
 	var tag = decoded[22] == 0 ? false : decoded[23] + decoded[24] * 0x100 + decoded[25] * 0x10000 + decoded[26] * 0x1000000
 	return decoded[22] > 1 ? false : {raddr: raddr, tag: tag}
 }
@@ -168,9 +168,11 @@ function cmdline(argv) {
         }
     }
 
-    argv = argv2
+    argv = []
+    for (var i in argv2)
+        if (argv2[i] !== undefined) argv.push(argv2[i])
 
-    if (argv[0] == 'address' && argv.length >= 2) {
+    if (argv[0] == 'address' && argv.length > 2) {
         // in this mode we won't look for a file because the user is specifying an XRPL validator public key
         return console.log(xrpl_address_from_validator_pk(argv[1]))
     }

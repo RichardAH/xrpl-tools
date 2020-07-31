@@ -18,7 +18,7 @@
     "assert": "^2.0.0",
     "base-x": "^3.0.6",
     "crypto": "^1.0.1",
-    "elliptic": "^6.5.0",
+    "elliptic": "^6.5.3",
     "ripple-address-codec": "^2.0.1",
     "ripple-lib": "^1.2.4"
   }

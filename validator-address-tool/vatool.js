@@ -3,12 +3,12 @@
     This is a script for using XRPL validator keys to produce an XRPL address and corresponding private key
     The keys are the same, just reformated to work as an account keypair
     Included is a function to rekey your validator's XRPL account, for ease of use and security
-    
-    Version 1.1
-    Author: Richard Holland
-    Date: 22 Sep 2019
 
-**/
+    Version 1.2
+    Author: Richard Holland, Robert Zhang
+    Date: 22 November 2020
+
+ **/
 
 'use strict';
 //NB: All functions assume ED25519 keys
@@ -20,6 +20,7 @@ const assert = require('assert');
 const crypto = require('crypto');
 const R_B58_DICT = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz';
 const base58 = require('base-x')(R_B58_DICT);
+const yargs = require('yargs/yargs')
 assert(crypto.getHashes().includes('sha256'));
 assert(crypto.getHashes().includes('ripemd160'));
 
@@ -49,7 +50,7 @@ function public_key_from_validator_pk(pk) {
 
 function xrpl_address_from_validator_pk(pk, skipdecode) {
     var pubkey = pk
-    if (!skipdecode) 
+    if (!skipdecode)
         pubkey = public_key_from_validator_pk(pk)
     assert(pubkey.length == 33);
     const pubkey_inner_hash = crypto.createHash('sha256').update(Buffer.from(pubkey));
@@ -97,88 +98,30 @@ function do_rekey_from_validator_sk(validatorsk, regular_key, server) {
     };
 
     function quit(message) {
-      console.log(message);
-      process.exit(0);
+        console.log(message);
+        process.exit(0);
     }
 
     function fail(message) {
-      console.error(message);
-      process.exit(1);
+        console.error(message);
+        process.exit(1);
     }
 
     rapi.connect().then(() => {
-      console.log('Connected...');
-      return rapi.prepareSettings(address, settings, instructions).then(prepared => {
-        console.log('Settings transaction prepared...');
-        const {signedTransaction} = rapi.sign(prepared.txJSON, ripple_keypair_from_validator_sk(validatorsk));
-        console.log(JSON.parse(prepared.txJSON))
-        console.log('Settings transaction signed...');
-        rapi.submit(signedTransaction).then(quit, fail);
-      });
+        console.log('Connected...');
+        return rapi.prepareSettings(address, settings, instructions).then(prepared => {
+            console.log('Settings transaction prepared...');
+            const {signedTransaction} = rapi.sign(prepared.txJSON, ripple_keypair_from_validator_sk(validatorsk));
+            console.log(JSON.parse(prepared.txJSON))
+            console.log('Settings transaction signed...');
+            rapi.submit(signedTransaction).then(quit, fail);
+        });
     }).catch(fail);
-    
+
 }
 
-function print_help() {
-    console.log("Validator Key Account Generator.")
-    console.log("Usage: option [key] [-t] [-f file] [-s server]")
-    console.log("Option:")
-    console.log("   address   Show the XRPL address corresponding to your validator's key. If a validator pubkey is specified the address for this is shown instead.")
-    console.log("   rekey     Set a regular key for the XRPL address corresponding to your validator's key as loaded from the validator-keys.json file")
-    console.log("Flags:")
-    console.log("   -t        Use Testnet")
-    console.log("   -f        Set the location of the validator-keys.json file")
-    console.log("   -s        Set the websocket server to connect to (-t overrides this with hardcoded testnet server)")
-}
-
-var argv = process.argv
-argv.shift()
-argv.shift()
-
-function cmdline(argv) {
-
+function read_keys_file(validatorkeysfile) {
     var fs = require('fs');
-    
-    if (argv.length == 0 || argv[0] == 'help')
-        return print_help()
-  
-
-    // deep copy argv
-    var argv2 = []
-    for (var x in argv) argv2[x] = argv[x]
-
-    // find flags
-    var validatorkeysfile = '/root/.ripple/validator-keys.json'
-    var testnet = false
-    var server = 'wss://s1.ripple.com'
-    for (var x = 0; x < argv.length; x++) {
-        if (argv[x] == '-f') {
-            if (x+1 >= argv.length) return print_help()
-            validatorkeysfile = argv[x+1]
-            delete argv2[x]
-            delete argv2[x++ +1]
-        } else if (argv[x] == '-t') {
-            testnet = true 
-            delete argv2[x]
-        } else if (argv[x] == '-s') {
-            if (x+1 >= argv.length) return print_help()
-            server = argv[x+1]
-            delete argv2[x]
-            delete argv2[x++ + 1]
-        }
-    }
-
-    argv = []
-    for (var i in argv2)
-        if (argv2[i] !== undefined) argv.push(argv2[i])
-
-    if (argv[0] == 'address' && argv.length >= 2) {
-        // in this mode we won't look for a file because the user is specifying an XRPL validator public key
-        var r = xrpl_address_from_validator_pk(argv[1])
-        console.log('r-Address: ' + r)
-        console.log('X-Address: ' + xaddr(r, false))
-        return
-    }
 
     // open the file
     var keys = null
@@ -197,36 +140,73 @@ function cmdline(argv) {
     if (keys.key_type != 'ed25519')
         return console.log("Sorry this only works for validators using ed25519 keys at the moment!")
 
-    // sanity check the keys    
+    // sanity check the keys
 
     var xrpl_addr_from_pk = xrpl_address_from_validator_pk(keys.public_key)
     var xrpl_addr_from_sk = xrpl_address_from_validator_sk(keys.secret_key)
     if (xrpl_addr_from_pk !=  xrpl_addr_from_sk)
         return console.log("Sorry your validator's keys don't appear to match. This might be a bug in this script if your validator running fine.")
 
-    if (argv[0] == 'address') { 
-        console.log("Your validator's XRPL r-address is: " + xrpl_addr_from_sk) 
-        console.log("Your validator's XRPL X-address is: " + xaddr(xrpl_addr_from_sk, false))
-        return
+    return {
+      keys: keys,
+      xrpl_addr_from_sk: xrpl_addr_from_sk
     }
-
-    if (argv[0] == 'rekey') {
-        if (argv.length < 2)
-            return console.log("You must supply a regular key to set!")
-        var regular_key = argv[1]
-
-        // convert from an X-address where applicable
-        if (regular_key.substr(0,1) == 'X')
-            regular_key = raddr(regular_key).raddr
-
-        // check the regular key is valid
-        if (!address_codec.isValidAccountID(regular_key))
-            return console.log("Supplied regular key is not valid")
-
-        return do_rekey_from_validator_sk(keys.secret_key, regular_key, ( testnet ? 'wss://s.altnet.rippletest.net:51233' : server )) 
-    }
-
-    return print_help()
 }
 
-cmdline(argv)
+var argv = yargs(process.argv.slice(2))
+    .command(['address [pubkey]'],
+        'Show the XRPL address corresponding to your validator\'s key. If a validator pubkey is specified, the address for it is shown instead.', (yargs) => {
+            yargs.positional('pubkey', {
+                describe: 'The public key of your validator',
+                type: 'string',
+            })
+        }, (argv) => {
+            if (argv.pubkey) {
+                var xrpl_addr_from_pk = xrpl_address_from_validator_pk(argv.pubkey)
+                console.log("Your validator's XRPL address is: " + xrpl_addr_from_pk)
+                console.log("Your validator's XRPL X-address is: " + xaddr(xrpl_addr_from_pk, false))
+                return
+            }
+            var res  = read_keys_file(argv.f)
+            console.log("Your validator's XRPL address is: " + res.xrpl_addr_from_sk)
+            console.log("Your validator's XRPL X-address is: " + xaddr(res.xrpl_addr_from_sk, false))
+
+        })
+    .command(['rekey <regular_key>'],
+        'Set a regular key for the XRPL address corresponding to your validator\'s key as loaded from the validator-keys.json file', (yargs) => {
+            yargs.positional('regular_key', {
+                describe: 'The public key of the regular key',
+                type: 'string',
+            })
+            .option('testnet', {
+                alias: 't',
+                type: 'bool',
+                describe: 'Use Testnet'
+            })
+            .option('server', {
+                alias: 's',
+                type: 'string',
+                default: 'wss://s1.ripple.com',
+                describe: 'Set the websocket server to connect to (-t overrides this with hardcoded testnet server)'
+            })
+        }, (argv) => {
+            // convert from an X-address where applicable
+            if (regular_key.substr(0,1) == 'X')
+              regular_key = raddr(argv.regular_key).raddr;
+
+            // check the regular key is valid
+            if (!address_codec.isValidAccountID(argv.regular_key))
+                return console.log("Supplied regular key is not valid")
+            var res = read_keys_file(argv.f)
+            return do_rekey_from_validator_sk(res.keys.secret_key, argv.regular_key, ( argv.testnet ? 'wss://s.altnet.rippletest.net:51233' : argv.server ))
+        })
+    .option('file', {
+        alias: 'f',
+        type: 'string',
+        default: require('os').homedir() + '/.ripple/validator-keys.json',
+        describe: 'Set the location of the validator-keys.json file'
+    })
+    .demandCommand(1, 'Please specify a command')
+    .global('file')
+    .help('help')
+    .argv
